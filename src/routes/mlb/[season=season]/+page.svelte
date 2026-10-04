@@ -33,7 +33,7 @@
 	<h1>{data.season} Major League Baseball</h1>
 
 	<section aria-labelledby="batting-heading">
-		<h2 id="batting-heading">Batting Leaders</h2>
+		<h2 id="batting-heading"><a href={`/mlb/${data.season}/batting`}>Batting</a></h2>
 
 		<div class="leaderboards">
 			{#each data.batting as leaderboard (leaderboard.abbreviation)}
@@ -65,7 +65,7 @@
 	</section>
 
 	<section aria-labelledby="pitching-heading">
-		<h2 id="pitching-heading">Pitching Leaders</h2>
+		<h2 id="pitching-heading"><a href={`/mlb/${data.season}/pitching`}>Pitching</a></h2>
 
 		<div class="leaderboards">
 			{#each data.pitching as leaderboard (leaderboard.abbreviation)}

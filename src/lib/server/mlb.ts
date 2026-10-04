@@ -2,7 +2,11 @@ import {
 	BATTING_LEADERBOARDS,
 	PITCHING_LEADERBOARDS,
 	type LeaderboardOptions,
+	type StatGroup,
 } from './mlb-leaderboards';
+import { statLabel } from './mlb-stat-labels';
+
+export type { StatGroup } from './mlb-leaderboards';
 
 const API_BASE_URL = 'https://statsapi.mlb.com/api/v1';
 const MLB_SPORT_ID = 1;
@@ -29,6 +33,9 @@ interface StatSplit {
 		id: number;
 		name: string;
 	};
+	position?: {
+		abbreviation: string;
+	};
 	stat?: Record<string, number | string>;
 }
 
@@ -46,6 +53,25 @@ export interface Leaderboard {
 	name: string;
 	abbreviation: string;
 	leaders: Leader[];
+}
+
+export interface StatColumn {
+	key: string;
+	label: string;
+}
+
+export interface SeasonStatRow {
+	playerId: number;
+	playerName: string;
+	teamId: number | null;
+	teamName: string;
+	position: string;
+	stats: Record<string, number | string>;
+}
+
+export interface SeasonStats {
+	columns: StatColumn[];
+	rows: SeasonStatRow[];
 }
 
 type Fetch = typeof fetch;
@@ -138,6 +164,52 @@ async function getLeaderboard(
 		name: options.name,
 		abbreviation: options.abbreviation,
 		leaders: markTies(leaders),
+	};
+}
+
+export async function getSeasonStats(
+	fetcher: Fetch,
+	season: string,
+	group: StatGroup,
+): Promise<SeasonStats> {
+	const params = new URLSearchParams({
+		stats: 'season',
+		group,
+		season,
+		sportIds: String(MLB_SPORT_ID),
+		playerPool: 'ALL',
+		limit: '5000',
+	});
+	const data = await request<StatsResponse>(fetcher, `/stats?${params}`);
+	const splits = data.stats?.[0]?.splits ?? [];
+	const columnKeys = new Set<string>();
+
+	const rows = splits.flatMap((split) => {
+		if (!split.player || !split.stat) return [];
+
+		const position = split.position?.abbreviation;
+		const isPitcher = position === 'P' || position === 'TWP';
+		if (group === 'hitting' ? position === 'P' : !isPitcher) return [];
+
+		for (const key of Object.keys(split.stat)) columnKeys.add(key);
+
+		return [
+			{
+				playerId: split.player.id,
+				playerName: split.player.fullName,
+				teamId: split.team?.id ?? null,
+				teamName: split.team?.name ?? '—',
+				position: split.position?.abbreviation ?? '—',
+				stats: split.stat,
+			},
+		];
+	});
+
+	rows.sort((left, right) => left.playerName.localeCompare(right.playerName));
+
+	return {
+		columns: [...columnKeys].map((key) => ({ key, label: statLabel(key) })),
+		rows,
 	};
 }
 
