@@ -1,3 +1,9 @@
+import {
+	BATTING_LEADERBOARDS,
+	PITCHING_LEADERBOARDS,
+	type LeaderboardOptions,
+} from './mlb-leaderboards';
+
 const API_BASE_URL = 'https://statsapi.mlb.com/api/v1';
 const MLB_SPORT_ID = 1;
 
@@ -43,79 +49,6 @@ export interface Leaderboard {
 }
 
 type Fetch = typeof fetch;
-
-type LeaderboardOptions = {
-	name: string;
-	abbreviation: string;
-	group: 'hitting' | 'pitching';
-	stat: string;
-	order: 'asc' | 'desc';
-	qualified?: boolean;
-};
-
-const BATTING_LEADERBOARDS: LeaderboardOptions[] = [
-	{
-		name: 'Batting Average',
-		abbreviation: 'AVG',
-		group: 'hitting',
-		stat: 'avg',
-		order: 'desc',
-		qualified: true,
-	},
-	{
-		name: 'Home Runs',
-		abbreviation: 'HR',
-		group: 'hitting',
-		stat: 'homeRuns',
-		order: 'desc',
-	},
-	{
-		name: 'Runs Batted In',
-		abbreviation: 'RBI',
-		group: 'hitting',
-		stat: 'rbi',
-		order: 'desc',
-	},
-	{
-		name: 'Stolen Bases',
-		abbreviation: 'SB',
-		group: 'hitting',
-		stat: 'stolenBases',
-		order: 'desc',
-	},
-];
-
-const PITCHING_LEADERBOARDS: LeaderboardOptions[] = [
-	{
-		name: 'Earned Run Average',
-		abbreviation: 'ERA',
-		group: 'pitching',
-		stat: 'era',
-		order: 'asc',
-		qualified: true,
-	},
-	{
-		name: 'Wins',
-		abbreviation: 'W',
-		group: 'pitching',
-		stat: 'wins',
-		order: 'desc',
-	},
-	{
-		name: 'Strikeouts',
-		abbreviation: 'SO',
-		group: 'pitching',
-		stat: 'strikeOuts',
-		order: 'desc',
-	},
-	{
-		name: 'Saves',
-		abbreviation: 'SV',
-		group: 'pitching',
-		stat: 'saves',
-		order: 'desc',
-	},
-];
 
 function markTies(leaders: Leader[]): Leader[] {
 	const rankCounts = new Map<number, number>();
