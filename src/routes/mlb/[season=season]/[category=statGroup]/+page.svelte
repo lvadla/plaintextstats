@@ -11,41 +11,43 @@
 </svelte:head>
 
 <main>
-	<header class="site-header">
-		<a href="/mlb">plaintextstats</a>
-		<a href={`/mlb/${data.season}`}>{data.season} MLB</a>
-	</header>
+	<div class="page-header">
+		<header class="site-header">
+			<a href="/mlb">plaintextstats</a>
+			<a href={`/mlb/${data.season}`}>{data.season} MLB</a>
+		</header>
 
-	<nav class="season-nav" aria-label="Season navigation">
-		<span>
-			{#if data.previousSeason}
-				<a href={`/mlb/${data.previousSeason}/${data.category}`}>&lt; {data.previousSeason}</a>
+		<nav class="season-nav" aria-label="Season navigation">
+			<span>
+				{#if data.previousSeason}
+					<a href={`/mlb/${data.previousSeason}/${data.category}`}>&lt; {data.previousSeason}</a>
+				{/if}
+			</span>
+			<strong>{data.season} {data.categoryName}</strong>
+			<span class="next">
+				{#if data.nextSeason}
+					<a href={`/mlb/${data.nextSeason}/${data.category}`}>{data.nextSeason} &gt;</a>
+				{/if}
+			</span>
+		</nav>
+
+		<h1>{data.season} MLB {data.categoryName}</h1>
+
+		<nav class="category-nav" aria-label="Statistics category">
+			{#if data.category === 'batting'}
+				<strong aria-current="page">Batting</strong>
+			{:else}
+				<a href={`/mlb/${data.season}/batting`}>Batting</a>
 			{/if}
-		</span>
-		<strong>{data.season} {data.categoryName}</strong>
-		<span class="next">
-			{#if data.nextSeason}
-				<a href={`/mlb/${data.nextSeason}/${data.category}`}>{data.nextSeason} &gt;</a>
+			{#if data.category === 'pitching'}
+				<strong aria-current="page">Pitching</strong>
+			{:else}
+				<a href={`/mlb/${data.season}/pitching`}>Pitching</a>
 			{/if}
-		</span>
-	</nav>
+		</nav>
 
-	<h1>{data.season} MLB {data.categoryName}</h1>
-
-	<nav class="category-nav" aria-label="Statistics category">
-		{#if data.category === 'batting'}
-			<strong aria-current="page">Batting</strong>
-		{:else}
-			<a href={`/mlb/${data.season}/batting`}>Batting</a>
-		{/if}
-		{#if data.category === 'pitching'}
-			<strong aria-current="page">Pitching</strong>
-		{:else}
-			<a href={`/mlb/${data.season}/pitching`}>Pitching</a>
-		{/if}
-	</nav>
-
-	<p class="summary">{data.rows.length} players · {data.columns.length} statistics</p>
+		<p class="summary">{data.rows.length} players · {data.columns.length} statistics</p>
+	</div>
 
 	<div class="table-scroll" role="region" aria-label={`${data.categoryName} statistics`}>
 		<table>
@@ -100,8 +102,11 @@
 	}
 
 	main {
+		--page-padding: clamp(0.5rem, 2vw, 2rem);
+		--sticky-page-header-height: 10.2375rem;
+
 		width: 100%;
-		padding: clamp(0.5rem, 2vw, 2rem);
+		padding: var(--page-padding);
 	}
 
 	a {
@@ -124,7 +129,6 @@
 
 	.site-header {
 		grid-template-columns: 1fr auto;
-		margin-bottom: 1.5rem;
 	}
 
 	.season-nav strong {
@@ -135,8 +139,32 @@
 		text-align: right;
 	}
 
+	.page-header {
+		position: sticky;
+		top: var(--page-padding);
+		left: 0;
+		z-index: 4;
+		display: grid;
+		gap: 1rem;
+		width: 100%;
+		padding-bottom: 0.5rem;
+		isolation: isolate;
+		background: #fff;
+	}
+
+	.page-header::before {
+		position: absolute;
+		top: calc(-1 * var(--page-padding));
+		right: -100vw;
+		bottom: 0;
+		left: -100vw;
+		z-index: -1;
+		background: #fff;
+		content: '';
+	}
+
 	h1 {
-		margin: 1.5rem 0 0.75rem;
+		margin: 0;
 		font-size: 1rem;
 		text-align: center;
 	}
@@ -148,19 +176,20 @@
 	}
 
 	.summary {
-		margin: 1.5rem 0 0.5rem;
+		margin: 0;
 		color: #666;
 	}
 
 	.table-scroll {
-		max-width: 100%;
-		overflow-x: auto;
+		width: max-content;
+		min-width: 100%;
 	}
 
 	table {
 		width: max-content;
 		min-width: 100%;
-		border-collapse: collapse;
+		border-collapse: separate;
+		border-spacing: 0;
 		font-variant-numeric: tabular-nums;
 	}
 
@@ -172,15 +201,35 @@
 	}
 
 	thead th {
+		position: sticky;
+		top: calc(var(--page-padding) + var(--sticky-page-header-height));
+		z-index: 2;
 		border-bottom: 1px dashed currentColor;
+		background: #fff;
 	}
 
 	tbody tr:nth-child(odd) {
 		background: #f1f1f1;
 	}
 
+	.player,
+	.player-column {
+		position: sticky;
+		left: 0;
+	}
+
+	.player-column {
+		z-index: 3;
+	}
+
 	.player {
+		z-index: 1;
+		background: #fff;
 		font-weight: normal;
+	}
+
+	tbody tr:nth-child(odd) .player {
+		background: #f1f1f1;
 	}
 
 	.team {
@@ -192,7 +241,7 @@
 	}
 
 	footer {
-		margin-top: 2rem;
+		margin-top: 0.75rem;
 		padding-top: 0.5rem;
 		border-top: 1px dashed currentColor;
 		text-align: center;
@@ -213,7 +262,16 @@
 			color: #888;
 		}
 
-		tbody tr:nth-child(odd) {
+		.page-header,
+		.page-header::before,
+		h1,
+		thead th,
+		.player {
+			background: #101010;
+		}
+
+		tbody tr:nth-child(odd),
+		tbody tr:nth-child(odd) .player {
 			background: #202020;
 		}
 	}
